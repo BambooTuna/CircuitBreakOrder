@@ -44,6 +44,7 @@ class CheckExecutionsActor(bitflyerRestAPIs: BitflyerRestAPIs) extends Actor {
         )
       )
       if res.isRight
+      if res.right.get.nonEmpty
     } yield {
       logger.info(res.right.get.toString())
       self ! RevertPushToParent(res.right.get.foldLeft("CB指値約定情報")((l, r) => l + s"\n時刻：${convertDate(r.exec_date)}　価格：${r.price}　サイズ：${r.size * (if (r.side == Side.Buy) 1 else -1)}"))
