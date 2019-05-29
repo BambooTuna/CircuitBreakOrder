@@ -8,5 +8,5 @@ lazy val root: Project = (project in file("."))
       Slick.slick,
       Slick.hikaricp,
       MySQL.connector
-    )
+    ) ++ Kamon.all
   )

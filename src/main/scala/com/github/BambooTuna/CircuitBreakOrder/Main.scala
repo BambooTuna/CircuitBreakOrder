@@ -12,7 +12,10 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContextExecutor
 
+import kamon.Kamon
+
 object Main extends App {
+  Kamon.start()
 
   val rootConfig: Config = ConfigFactory.load()
 
@@ -37,6 +40,7 @@ object Main extends App {
   logger.info("========== CircuitBreakOrder start ==========")
 
   sys.addShutdownHook {
+    Kamon.shutdown()
     mainLogicActor ! PushNotification("========== CircuitBreakOrder Shutdown ==========")
     logger.info("========== CircuitBreakOrder Shutdown ==========")
   }

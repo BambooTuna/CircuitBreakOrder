@@ -7,12 +7,14 @@ import com.github.BambooTuna.CircuitBreakOrder.GetCircuitBreakInfoActor.{GetCirc
 import com.github.BambooTuna.CircuitBreakOrder.GetCircuitBreakInfoScheduleActor._
 import com.github.BambooTuna.CryptoLib.restAPI.client.bitflyer.APIList.GetCircuitBreakInfoResponse
 import com.github.BambooTuna.CryptoLib.restAPI.client.bitflyer.BitflyerRestAPIs
+import kamon.Kamon
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.concurrent.duration._
 
 class GetCircuitBreakInfoScheduleActor(bitflyerRestAPIs: BitflyerRestAPIs) extends Actor {
+  val counter = Kamon.metrics.counter("GetCircuitBreakInfoResponse-Count")
 
   implicit val system: ActorSystem = context.system
   implicit val materializer: ActorMaterializer = ActorMaterializer()
@@ -21,7 +23,7 @@ class GetCircuitBreakInfoScheduleActor(bitflyerRestAPIs: BitflyerRestAPIs) exten
 
   val getCircuitBreakInfoActor = context.actorOf(Props(classOf[GetCircuitBreakInfoActor], bitflyerRestAPIs), GetCircuitBreakInfoActor.ActorName)
 
-  val orderInterval = 1.minutes
+  val orderInterval = 1.seconds
   val timerTimeout = 5.minutes
   val timerInterval = 1.minutes
   val timer = system.scheduler.schedule(timerInterval,  timerInterval, self, AddTimerCount)
@@ -33,6 +35,7 @@ class GetCircuitBreakInfoScheduleActor(bitflyerRestAPIs: BitflyerRestAPIs) exten
       getCircuitBreakInfoActor ! GetCircuitBreakInfoData
     case d: GetCircuitBreakInfoResponse =>
       context.parent ! d
+      counter.increment()
       timerCount = 0.minutes
       Future{Thread.sleep(orderInterval.toMillis)}.onComplete(_ => self ! Start)
     case AddTimerCount =>
